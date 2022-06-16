@@ -1,2 +1,10 @@
-
+*.RData
+.Rhistory
 *.pdf
+*.pbs
+*.sh
+*.log
+old/
+coverage_plots/
+.Rproj.user
+*.Rproj
