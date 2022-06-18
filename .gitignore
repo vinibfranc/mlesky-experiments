@@ -4,7 +4,8 @@
 *.pbs
 *.sh
 *.log
-old/
+bkp/
 coverage_plots/
+error_plots/
 .Rproj.user
 *.Rproj
