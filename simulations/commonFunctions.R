@@ -17,6 +17,7 @@ library(stringr)
 ncpu = 7
 nsim = 500
 scaleFUN = function(x) sprintf("%.2f", x) # format to 2 decimal places
+scale4FUN = function(x) sprintf("%.4f", x) # format to 4 decimal places
 
 set.seed(3)
 #set.seed(425672)
@@ -95,10 +96,6 @@ get_nsim_estimates <- function(sim_trees, sampDates, alphaFun, model, out_path_c
     ne_est_adj[[i]] = approx(pboot_ne_ind_common[[i]]$time, pboot_ne_ind_common[[i]]$est_ne, xout=common_time_ax, rule=2)$y; ne_est_adj[[i]] = as.data.frame(ne_est_adj[[i]])
     nelb_adj[[i]] = approx(pboot_ne_ind_common[[i]]$time, pboot_ne_ind_common[[i]]$nelb, xout=common_time_ax, rule=2)$y; nelb_adj[[i]] = as.data.frame(nelb_adj[[i]])
     neub_adj[[i]] = approx(pboot_ne_ind_common[[i]]$time, pboot_ne_ind_common[[i]]$neub, xout=common_time_ax, rule=2)$y; neub_adj[[i]] = as.data.frame(neub_adj[[i]])
-    # mean_abs_error[[i]] = sum(abs(true_ne_adj[[i]] - ne_est_adj[[i]]))/length(true_ne_adj[[i]])
-    # mae_metrics[[i]] = mae(actual = true_ne_adj[[i]], predicted = ne_est_adj[[i]])
-    # rmse_val[[i]] = sqrt(mean((true_ne_adj[[i]] - ne_est_adj[[i]])^2))
-    # rmse_metrics[[i]] = rmse(true_ne_adj[[i]], ne_est_adj[[i]])
     pboot_ne_adj[[i]] = cbind(time_adj[[i]], true_ne_adj[[i]], nelb_adj[[i]], ne_est_adj[[i]], neub_adj[[i]])
     colnames(pboot_ne_adj[[i]]) = c("time","true_ne", "nelb", "est_ne", "neub")
   }
@@ -170,8 +167,7 @@ get_nsim_estimates <- function(sim_trees, sampDates, alphaFun, model, out_path_c
   p2 = ggplot(data=mean_abs_error_df, aes(x=as.numeric(as.character(n_sim)), y=mean_abs_error)) + 
     geom_line(color="steelblue") + geom_point(color="steelblue") +
     labs(x = "Simulation index", y = "Mean Absolute Error (MAE)", caption = paste0("Overall MAE = ", scaleFUN(mean_abs_error_avg))) +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5), plot.caption = element_text(hjust=1),
-                       axis.text.x = element_text(size=7))
+    theme_bw() + theme(plot.title = element_text(hjust=0.5), plot.caption = element_text(hjust=1))
   
   print(paste0("Error (MAE) for each simulation index plotted to: ",error_out_pref,out_path_error))
   ggsave(paste0(error_out_pref,out_path_error), plot=p2, units="in", width=7, height=7, dpi=600)
@@ -179,8 +175,7 @@ get_nsim_estimates <- function(sim_trees, sampDates, alphaFun, model, out_path_c
   p3 = ggplot(data=rmse_df, aes(x=as.numeric(as.character(n_sim)), y=rmse_val)) + 
     geom_line(color="steelblue") + geom_point(color="steelblue") +
     labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)", caption = paste0("Overall RMSE = ", scaleFUN(rmse_avg))) +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5), plot.caption = element_text(hjust=1),
-                       axis.text.x = element_text(size=7))
+    theme_bw() + theme(plot.title = element_text(hjust=0.5), plot.caption = element_text(hjust=1))
   
   print(paste0("Root Mean Square Error (RMSE) for each simulation index plotted to: ",error_out_pref,out_path_rmse))
   ggsave(paste0(error_out_pref,out_path_rmse), plot=p3, units="in", width=7, height=7, dpi=600)
@@ -188,14 +183,14 @@ get_nsim_estimates <- function(sim_trees, sampDates, alphaFun, model, out_path_c
   return(list(pboot_ne_ind, pboot_ne_adj_df, cov_prob, cov_prob_matrix, cov_prob_avg, cov_prob_over_time, cov_prob_over_time_df, common_time_ax, mean_abs_error_df, rmse_df))
 }
 
-# Compare coverage probabilities for different models (skysigma, skygrid, and skygrowth) and the same Ne function
+# Compare coverage probabilities for different models (skykappa, skygrid, and skygrowth) and the same Ne function
 compare_cov_prob_models <- function(m1_cp, m2_cp, m3_cp, common_t_ax, out_path) {
   cp_out_pref = "coverage_plots/"
   system(paste0("mkdir -p ",cp_out_pref,dirname(out_path)))
   
-  m1_cp$model = "Skysigma"; m2_cp$model = "Skygrid"; m3_cp$model = "Skygrowth"
+  m1_cp$model = "Skykappa"; m2_cp$model = "Skygrid"; m3_cp$model = "Skygrowth"
   m_comb = rbind(m1_cp, m2_cp, m3_cp)
-  m_comb$model = factor(m_comb$model, levels=c("Skysigma", "Skygrid", "Skygrowth"))
+  m_comb$model = factor(m_comb$model, levels=c("Skykappa", "Skygrid", "Skygrowth"))
   
   p = ggplot(m_comb, aes(time, cov_prob_over_time, color = model)) + #shape=model
     geom_line() + geom_point() + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
@@ -232,32 +227,32 @@ compare_same_model_diff_samp_size <- function(cp_more_tips, cp_intermed_tips, cp
   return(p)
 }
 
-# Compare errors (MAE and RMSE) for different models (skysigma, skygrid, and skygrowth) and the same Ne function
+# Compare errors (MAE and RMSE) for different models (skykappa, skygrid, and skygrowth) and the same Ne function
 compare_err_models <- function(m1_mae, m2_mae, m3_mae, m1_rmse, m2_rmse, m3_rmse, common_t_ax, out_path_mae, out_path_rmse) {
   err_out_pref = "error_plots/"
   system(paste0("mkdir -p ",err_out_pref,dirname(out_path_mae)))
   system(paste0("mkdir -p ",err_out_pref,dirname(out_path_rmse)))
   
-  m1_mae$model = "Skysigma"; m2_mae$model = "Skygrid"; m3_mae$model = "Skygrowth"
+  m1_mae$model = "Skykappa"; m2_mae$model = "Skygrid"; m3_mae$model = "Skygrowth"
   mae_comb = rbind(m1_mae, m2_mae, m3_mae)
-  mae_comb$model = factor(mae_comb$model, levels=c("Skysigma", "Skygrid", "Skygrowth"))
+  mae_comb$model = factor(mae_comb$model, levels=c("Skykappa", "Skygrid", "Skygrowth"))
   
   p1 = ggplot(mae_comb, aes(x=as.numeric(as.character(n_sim)), y=mean_abs_error, color = model)) +
     geom_line() + geom_point() + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Mean Absolute Error (MAE)") +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5),axis.text.x = element_text(size=7))
+    labs(x = "Simulation index", y = "Mean Absolute Error (MAE)") + coord_cartesian(ylim = c(0,20)) +
+    theme_bw() + theme(plot.title = element_text(hjust=0.5))
   
   print(paste0("Mean absolute error (MAE) comparison for different models plotted to: ",err_out_pref,out_path_mae))
   ggsave(paste0(err_out_pref,out_path_mae), plot=p1, units="in", width=7, height=7, dpi=600)
   
-  m1_rmse$model = "Skysigma"; m2_rmse$model = "Skygrid"; m3_rmse$model = "Skygrowth"
+  m1_rmse$model = "Skykappa"; m2_rmse$model = "Skygrid"; m3_rmse$model = "Skygrowth"
   rmse_comb = rbind(m1_rmse, m2_rmse, m3_rmse)
-  rmse_comb$model = factor(rmse_comb$model, levels=c("Skysigma", "Skygrid", "Skygrowth"))
+  rmse_comb$model = factor(rmse_comb$model, levels=c("Skykappa", "Skygrid", "Skygrowth"))
   
   p2 = ggplot(rmse_comb, aes(x=as.numeric(as.character(n_sim)), y=rmse_val, color = model)) +
     geom_line() + geom_point() + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)") +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5),axis.text.x = element_text(size=7))
+    labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)") + coord_cartesian(ylim = c(0,20)) +
+    theme_bw() + theme(plot.title = element_text(hjust=0.5))
   
   print(paste0("Root Mean Square Error (RMSE) comparison for different models plotted to: ",err_out_pref,out_path_rmse))
   ggsave(paste0(err_out_pref,out_path_rmse), plot=p2, units="in", width=7, height=7, dpi=600)
@@ -277,8 +272,8 @@ compare_err_same_model_diff_samp_size <- function(mae_more_tips, mae_intermed_ti
   
   p1 = ggplot(mae_comb, aes(x=as.numeric(as.character(n_sim)), y=mean_abs_error, color = sample_size)) + 
     geom_line() + geom_point() + scale_color_manual(name = "Sample size", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Mean Absolute Error (MAE)") +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5),axis.text.x = element_text(size=7))
+    labs(x = "Simulation index", y = "Mean Absolute Error (MAE)") + coord_cartesian(ylim = c(0,20)) +
+    theme_bw() + theme(plot.title = element_text(hjust=0.5))
   
   print(paste0("Mean absolute error (MAE) comparison for same model and different sample sizes plotted to: ",err_out_pref,out_path_mae))
   ggsave(paste0(err_out_pref,out_path_mae), plot=p1, units="in", width=7, height=7, dpi=600)
@@ -289,11 +284,101 @@ compare_err_same_model_diff_samp_size <- function(mae_more_tips, mae_intermed_ti
   
   p2 = ggplot(rmse_comb, aes(x=as.numeric(as.character(n_sim)), y=rmse_val, color = sample_size)) + 
     geom_line() + geom_point() + scale_color_manual(name = "Sample size", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)") +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5),axis.text.x = element_text(size=7))
+    labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)") + coord_cartesian(ylim = c(0,20)) +
+    theme_bw() + theme(plot.title = element_text(hjust=0.5))
   
   print(paste0("Root Mean Square Error (RMSE) comparison for same model and different sample sizes plotted to: ",err_out_pref,out_path_rmse))
   ggsave(paste0(err_out_pref,out_path_rmse), plot=p2, units="in", width=7, height=7, dpi=600)
   
   return(list(p1, p2))
+}
+
+# Since estimates for different sample sizes have different time axis, get ranges and approx values to get same time axis for all to fill table
+# This way we can have only 1 table per function instead of 3
+generate_summary_table_cov_prob <- function(alphaFun, t200_m1, t200_m2, t200_m3, t50_m1, t50_m2, t50_m3, t20_m1, t20_m2, t20_m3, out_path_cp) {
+  # 1 = n200+skykappa; 2 = n200+skygrid; 3 = n200+skygrowth; 4 = n50+skykappa; 5 = n50+skygrid; 6 = n50+skygrowth
+  # 7 = n20+skykappa; 8 = n20+skygrid; 9 = n20+skygrowth
+  t200_m1$id = 1; t200_m2$id = 2; t200_m3$id = 3;
+  t50_m1$id = 4; t50_m2$id = 5; t50_m3$id = 6;
+  t20_m1$id = 7; t20_m2$id = 8; t20_m3$id = 9;
+  
+  all_estims = rbind(t200_m1, t200_m2, t200_m3, t50_m1, t50_m2, t50_m3, t20_m1, t20_m2, t20_m3)
+  
+  # Get boundaries for common time axis across different sample sizes
+  first_coal_sims = all_estims %>% group_by(id) %>% filter(row_number()==1)
+  mr_first_coal_time = max(first_coal_sims$time)
+  last_coal_sims = all_estims %>% group_by(id) %>% filter(row_number()==n())
+  oldest_last_coal_time = min(last_coal_sims$time)
+  
+  common_time_ax = approx(all_estims$time, all_estims$est_ne, xout=seq(mr_first_coal_time, oldest_last_coal_time, length.out=nrow(all_estims)/(nsim*9)), rule=2)$x
+  print("Common time axis:")
+  print(common_time_ax)
+  
+  all_estims_nsim_id = split(all_estims, list(all_estims$n_sim, all_estims$id), drop = TRUE)
+  pboot_ne_adj = list()
+  for(i in seq_along(all_estims_nsim_id)) {
+    time_adj = common_time_ax; #time_adj = as.data.frame(time_adj)
+    true_ne_adj = alphaFun(time_adj); #true_ne_adj = as.data.frame(time_adj)
+    ne_est_adj = approx(all_estims_nsim_id[[i]]$time, all_estims_nsim_id[[i]]$est_ne, xout=common_time_ax, rule=2)$y; ne_est_adj = as.data.frame(ne_est_adj)
+    nelb_adj = approx(all_estims_nsim_id[[i]]$time, all_estims_nsim_id[[i]]$nelb, xout=common_time_ax, rule=2)$y; nelb_adj = as.data.frame(nelb_adj)
+    neub_adj = approx(all_estims_nsim_id[[i]]$time, all_estims_nsim_id[[i]]$neub, xout=common_time_ax, rule=2)$y; neub_adj = as.data.frame(neub_adj)
+    nsim = all_estims_nsim_id[[i]]$n_sim[1:length(common_time_ax)]
+    id = all_estims_nsim_id[[i]]$id[1:length(common_time_ax)]
+    pboot_ne_adj[[i]] = cbind(time_adj, true_ne_adj, nelb_adj, ne_est_adj, neub_adj, nsim, id)
+    colnames(pboot_ne_adj[[i]]) = c("time","true_ne", "nelb", "est_ne", "neub", "n_sim", "id")
+  }
+  # Join again now with common time axis
+  pboot_ne_nsim_id_adj_df = bind_rows(pboot_ne_adj)
+  # Calculate coverage probability (whether the true Ne value is covered [=1] or not [=0] by the estimated confidence intervals)
+  cov_prob = pboot_ne_nsim_id_adj_df %>% mutate(cover_table = ifelse((true_ne >= nelb & true_ne <= neub), 1, 0))
+  # View(cov_prob)
+  cov_prob_min = cov_prob %>% select(time, cover_table, n_sim, id)
+  cov_prob_min_splt = split(cov_prob_min, cov_prob_min$id)
+  cov_prob_min_id = cov_prob_avg = cov_prob_over_time = cov_prob_over_time_df = list()
+  for(i in 1:9) {
+    cov_prob_min_id[[i]] = dcast(cov_prob_min_splt[[i]],time~n_sim, value.var = "cover_table")
+    cov_prob_matrix = as.matrix(cov_prob_min_id[[i]])
+    rownames(cov_prob_matrix) = cov_prob_matrix[,1]
+    cov_prob_matrix = cov_prob_matrix[,-1]
+    # Get coverage probability over entire time axis (Overall)
+    cov_prob_avg[[i]] = mean(cov_prob_matrix)
+    # Get coverage probability for each common time point
+    cov_prob_over_time[[i]] = rowMeans(cov_prob_matrix)
+    cov_prob_over_time_df[[i]] = data.frame(cov_prob_over_time[[i]])
+    cov_prob_over_time_df[[i]]$time = rownames(cov_prob_over_time_df[[i]])
+    cov_prob_over_time_df[[i]]$time = as.numeric(cov_prob_over_time_df[[i]]$time)
+    rownames(cov_prob_over_time_df[[i]]) = NULL
+    cov_prob_over_time_df[[i]]$cov_prob_over_time = as.numeric(cov_prob_over_time_df[[i]]$cov_prob_over_time)
+    cov_prob_over_time_df[[i]] = cov_prob_over_time_df[[i]] %>% select(time, cov_prob_over_time)
+  }
+  axis_len = lapply(cov_prob_over_time_df, nrow)
+  min_axis_len = min(unlist(axis_len))
+  for(i in 1:length(cov_prob_over_time_df)) { 
+    cov_prob_over_time_df[[i]] = cov_prob_over_time_df[[i]][1:min_axis_len,]
+  }
+  cov_prob_all = Reduce(cbind, cov_prob_over_time_df)
+  to_del <- seq(3, ncol(cov_prob_all), 2)
+  cov_prob_all_f <-  cov_prob_all[,-to_del]
+  colnames(cov_prob_all_f) = c("time","n200+skykappa","n200+skygrid","n200+skygrowth","n50+skykappa","n50+skygrid","n50+skygrowth",
+                               "n20+skykappa","n20+skygrid","n20+skygrowth")
+  
+  summ_cp_pref = "tables/"
+  system(paste0("mkdir -p ",summ_cp_pref))
+  write.csv(cov_prob_all_f, file=paste0(summ_cp_pref,out_path_cp), quote=FALSE, row.names=FALSE)
+  return(list(cov_prob_all_f, cov_prob_avg))
+}
+
+generate_summary_table_rmse <- function(alphaFun, t200_m1, t200_m2, t200_m3, t50_m1, t50_m2, t50_m3, t20_m1, t20_m2, t20_m3, out_path_rmse) {
+  t200_m1$id = 1; t200_m2$id = 2; t200_m3$id = 3;
+  t50_m1$id = 4; t50_m2$id = 5; t50_m3$id = 6;
+  t20_m1$id = 7; t20_m2$id = 8; t20_m3$id = 9;
+  all_estims = rbind(t200_m1, t200_m2, t200_m3, t50_m1, t50_m2, t50_m3, t20_m1, t20_m2, t20_m3)
+  rmse_stat_df = all_estims %>% group_by(id) %>% summarise(avg_rmse = mean(rmse_val), median_rmse = median(rmse_val), iqr_mrse = IQR(rmse_val))
+  rmse_stat_df = t(rmse_stat_df)
+  colnames(rmse_stat_df) = c("n200+skykappa","n200+skygrid","n200+skygrowth","n50+skykappa","n50+skygrid","n50+skygrowth",
+                            "n20+skykappa","n20+skygrid","n20+skygrowth")
+  summ_err_pref = "tables/"
+  system(paste0("mkdir -p ",summ_err_pref))
+  write.csv(rmse_stat_df, file=paste0(summ_err_pref,out_path_rmse), quote=FALSE, row.names=FALSE)
+  return(rmse_stat_df)
 }

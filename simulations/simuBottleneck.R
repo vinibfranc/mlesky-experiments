@@ -43,11 +43,11 @@ ggarrange(t200_bottle_models, t50_bottle_models, t20_bottle_models, nrow=3, ncol
 ggsave("coverage_plots/comp_models/bottle_models.pdf", units="in", width=9, height=12, dpi=600)
 
 # compare different sample sizes for same function and model
-tx_bottle_skysigma = compare_same_model_diff_samp_size(t200_bottle_m1[[7]], t50_bottle_m1[[7]], t20_bottle_m1[[7]], t200_bottle_m1[[8]], "comp_models/cov_prob/bottle_diff_samp_skysigma.png")
+tx_bottle_skykappa = compare_same_model_diff_samp_size(t200_bottle_m1[[7]], t50_bottle_m1[[7]], t20_bottle_m1[[7]], t200_bottle_m1[[8]], "comp_models/cov_prob/bottle_diff_samp_skykappa.png")
 tx_bottle_skygrid = compare_same_model_diff_samp_size(t200_bottle_m2[[7]], t50_bottle_m2[[7]], t20_bottle_m2[[7]], t200_bottle_m2[[8]], "comp_models/cov_prob/bottle_diff_samp_skygrid.png")
 tx_bottle_skygrowth = compare_same_model_diff_samp_size(t200_bottle_m3[[7]], t50_bottle_m3[[7]], t20_bottle_m3[[7]], t200_bottle_m3[[8]], "comp_models/cov_prob/bottle_diff_samp_skygrowth.png")
 
-ggarrange(tx_bottle_skysigma, tx_bottle_skygrid, tx_bottle_skygrowth, nrow=3, ncol=1, labels=c("Skysigma","Skygrid","Skygrowth"), label.x = 0.05, label.y = 1.05, font.label=list(size=12), legend="right", common.legend = TRUE) +
+ggarrange(tx_bottle_skykappa, tx_bottle_skygrid, tx_bottle_skygrowth, nrow=3, ncol=1, labels=c("Skykappa","Skygrid","Skygrowth"), label.x = 0.05, label.y = 1.05, font.label=list(size=12), legend="right", common.legend = TRUE) +
   theme(plot.margin = margin(0.5,0.5,0.5,0.5, "cm"))
 ggsave("coverage_plots/comp_models/bottle_diff_samp_sizes.pdf", units="in", width=9, height=12, dpi=600)
 
@@ -65,20 +65,29 @@ ggarrange(t200_bottle_models_err[[2]], t50_bottle_models_err[[2]], t20_bottle_mo
 ggsave("error_plots/comp_models/rmse/bottle_models.pdf", units="in", width=9, height=12, dpi=600)
 
 # compare error considering different sample sizes for same function and model
-tx_bottle_skysigma_err = compare_err_same_model_diff_samp_size(t200_bottle_m1[[9]], t50_bottle_m1[[9]], t20_bottle_m1[[9]], t200_bottle_m1[[10]], t50_bottle_m1[[10]], t20_bottle_m1[[10]], t200_bottle_m1[[8]], "comp_models/mae/bottle_diff_samp_skysigma.png", "comp_models/rmse/bottle_diff_samp_skysigma.png")
+tx_bottle_skykappa_err = compare_err_same_model_diff_samp_size(t200_bottle_m1[[9]], t50_bottle_m1[[9]], t20_bottle_m1[[9]], t200_bottle_m1[[10]], t50_bottle_m1[[10]], t20_bottle_m1[[10]], t200_bottle_m1[[8]], "comp_models/mae/bottle_diff_samp_skykappa.png", "comp_models/rmse/bottle_diff_samp_skykappa.png")
 tx_bottle_skygrid_err = compare_err_same_model_diff_samp_size(t200_bottle_m2[[9]], t50_bottle_m2[[9]], t20_bottle_m2[[9]], t200_bottle_m2[[10]], t50_bottle_m2[[10]], t20_bottle_m2[[10]], t200_bottle_m2[[8]], "comp_models/mae/bottle_diff_samp_skygrid.png", "comp_models/rmse/bottle_diff_samp_skygrid.png")
 tx_bottle_skygrowth_err = compare_err_same_model_diff_samp_size(t200_bottle_m3[[9]], t50_bottle_m3[[9]], t20_bottle_m3[[9]], t200_bottle_m3[[10]], t50_bottle_m3[[10]], t20_bottle_m3[[10]], t200_bottle_m3[[8]], "comp_models/mae/bottle_diff_samp_skygrowth.png", "comp_models/rmse/bottle_diff_samp_skygrowth.png")
 
-ggarrange(tx_bottle_skysigma_err[[1]], tx_bottle_skygrid_err[[1]], tx_bottle_skygrowth_err[[1]], nrow=3, ncol=1, labels=c("Skysigma","Skygrid","Skygrowth"), label.x = 0.05, label.y = 1.05, font.label=list(size=12), legend="right", common.legend = TRUE) +
+ggarrange(tx_bottle_skykappa_err[[1]], tx_bottle_skygrid_err[[1]], tx_bottle_skygrowth_err[[1]], nrow=3, ncol=1, labels=c("Skykappa","Skygrid","Skygrowth"), label.x = 0.05, label.y = 1.05, font.label=list(size=12), legend="right", common.legend = TRUE) +
   theme(plot.margin = margin(0.5,0.5,0.5,0.5, "cm"))
 ggsave("error_plots/comp_models/mae/bottle_diff_samp_sizes.pdf", units="in", width=9, height=12, dpi=600)
 
-ggarrange(tx_bottle_skysigma_err[[2]], tx_bottle_skygrid_err[[2]], tx_bottle_skygrowth_err[[2]], nrow=3, ncol=1, labels=c("Skysigma","Skygrid","Skygrowth"), label.x = 0.05, label.y = 1.05, font.label=list(size=12), legend="right", common.legend = TRUE) +
+ggarrange(tx_bottle_skykappa_err[[2]], tx_bottle_skygrid_err[[2]], tx_bottle_skygrowth_err[[2]], nrow=3, ncol=1, labels=c("Skykappa","Skygrid","Skygrowth"), label.x = 0.05, label.y = 1.05, font.label=list(size=12), legend="right", common.legend = TRUE) +
   theme(plot.margin = margin(0.5,0.5,0.5,0.5, "cm"))
 ggsave("error_plots/comp_models/rmse/bottle_diff_samp_sizes.pdf", units="in", width=9, height=12, dpi=600)
 
 end <- Sys.time()
 total_time <- as.numeric (end - start, units = "mins")
 print(paste("Total time elapsed: ",total_time,"mins"))
+
+summary_bottle_cp = generate_summary_table_cov_prob(bottleFun, t200_bottle_m1[[3]], t200_bottle_m2[[3]], t200_bottle_m3[[3]], 
+                                                    t50_bottle_m1[[3]],t50_bottle_m2[[3]], t50_bottle_m3[[3]],
+                                                    t20_bottle_m1[[3]], t20_bottle_m2[[3]], t20_bottle_m3[[3]], "bottle_cp.csv") 
+
+summary_bottle_rmse = generate_summary_table_rmse(bottleFun, t200_bottle_m1[[10]], t200_bottle_m2[[10]], t200_bottle_m3[[10]], 
+                                                    t50_bottle_m1[[10]],t50_bottle_m2[[10]], t50_bottle_m3[[10]],
+                                                    t20_bottle_m1[[10]], t20_bottle_m2[[10]], t20_bottle_m3[[10]], "bottle_rmse.csv") 
+
 
 save.image(file="simuBottle.RData")
