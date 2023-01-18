@@ -227,6 +227,9 @@ compare_same_model_diff_samp_size <- function(cp_more_tips, cp_intermed_tips, cp
   return(p)
 }
 
+config_rem_ax1 <- theme(axis.ticks.x = element_blank(),axis.text.x = element_blank(),axis.title.x = element_blank(),plot.margin = margin(r=0.5,t=0.5,unit="cm"))
+config_rem_ax2 <- theme(plot.margin = margin(r=0.5,t=0.5,unit="cm"))
+
 # Compare errors (MAE and RMSE) for different models (skykappa, skygrid, and skygrowth) and the same Ne function
 compare_err_models <- function(m1_mae, m2_mae, m3_mae, m1_rmse, m2_rmse, m3_rmse, common_t_ax, out_path_mae, out_path_rmse) {
   err_out_pref = "error_plots/"
@@ -237,60 +240,85 @@ compare_err_models <- function(m1_mae, m2_mae, m3_mae, m1_rmse, m2_rmse, m3_rmse
   mae_comb = rbind(m1_mae, m2_mae, m3_mae)
   mae_comb$model = factor(mae_comb$model, levels=c("Skykappa", "Skygrid", "Skygrowth"))
   
+  #fct_lbls <- as_labeller(c(`Skykappa`="Skykappa",`Skygrid`="Skygrid",`Skygrowth`="Skygrowth"))
+  
   p1 = ggplot(mae_comb, aes(x=as.numeric(as.character(n_sim)), y=mean_abs_error, color = model)) +
-    geom_line() + geom_point() + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Mean Absolute Error (MAE)") + coord_cartesian(ylim = c(0,20)) +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5))
+  	geom_line(size=0.2) + geom_point(size=0.6) + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
+  	labs(x = "Simulation index", y = "MAE") + coord_cartesian(ylim = c(0,20)) +
+  	theme_bw() + theme(plot.title = element_text(hjust=0.5), legend.position="none")
+  
+  p1_f = p1 + facet_grid(. ~ model) #labeller=fct_lbls
+  #p1_f = p1 + facet_grid(model ~ ., labeller=fct_lbls)
+  
+  # p1 = ggplot(mae_comb, aes(x=as.numeric(as.character(n_sim)), y=mean_abs_error, color = model)) +
+  #   geom_line() + geom_point() + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
+  #   labs(x = "Simulation index", y = "Mean Absolute Error (MAE)") + coord_cartesian(ylim = c(0,20)) +
+  #   theme_bw() + theme(plot.title = element_text(hjust=0.5))
   
   print(paste0("Mean absolute error (MAE) comparison for different models plotted to: ",err_out_pref,out_path_mae))
-  ggsave(paste0(err_out_pref,out_path_mae), plot=p1, units="in", width=7, height=7, dpi=600)
+  ggsave(paste0(err_out_pref,out_path_mae), plot=p1_f, units="in", width=7, height=2.5, dpi=600)
   
   m1_rmse$model = "Skykappa"; m2_rmse$model = "Skygrid"; m3_rmse$model = "Skygrowth"
   rmse_comb = rbind(m1_rmse, m2_rmse, m3_rmse)
   rmse_comb$model = factor(rmse_comb$model, levels=c("Skykappa", "Skygrid", "Skygrowth"))
   
   p2 = ggplot(rmse_comb, aes(x=as.numeric(as.character(n_sim)), y=rmse_val, color = model)) +
-    geom_line() + geom_point() + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)") + coord_cartesian(ylim = c(0,20)) +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5))
+  	geom_line(size=0.2) + geom_point(size=0.6) + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
+  	labs(x = "Simulation index", y = "RMSE") + coord_cartesian(ylim = c(0,20)) +
+  	theme_bw() + theme(plot.title = element_text(hjust=0.5), legend.position="none")
+  
+  p2_f = p2 + facet_grid(. ~ model) #, labeller=fct_lbls
+  #p2_f = p2 + facet_grid(model ~ ., labeller=fct_lbls)
+  
+  # p2 = ggplot(rmse_comb, aes(x=as.numeric(as.character(n_sim)), y=rmse_val, color = model)) +
+  #   geom_line() + geom_point() + scale_color_manual(name = "Model", values = c("steelblue", "darkred", "darkolivegreen")) +
+  #   labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)") + coord_cartesian(ylim = c(0,20)) +
+  #   theme_bw() + theme(plot.title = element_text(hjust=0.5))
   
   print(paste0("Root Mean Square Error (RMSE) comparison for different models plotted to: ",err_out_pref,out_path_rmse))
-  ggsave(paste0(err_out_pref,out_path_rmse), plot=p2, units="in", width=7, height=7, dpi=600)
+  ggsave(paste0(err_out_pref,out_path_rmse), plot=p2_f, units="in", width=7, height=2.5, dpi=600)
   
-  return(list(p1, p2))
+  return(list(p1_f, p2_f))
 }
 
-# Compare error estimates (MAE and RMSE) for the same model using different sample sizes
 compare_err_same_model_diff_samp_size <- function(mae_more_tips, mae_intermed_tips, mae_less_tips, rmse_more_tips, rmse_intermed_tips, rmse_less_tips, common_t_ax, out_path_mae, out_path_rmse) {
-  err_out_pref = "error_plots/"
-  system(paste0("mkdir -p ",err_out_pref,dirname(out_path_mae)))
-  system(paste0("mkdir -p ",err_out_pref,dirname(out_path_rmse)))
-  
-  mae_more_tips$sample_size = 200; mae_intermed_tips$sample_size = 50; mae_less_tips$sample_size = 20
-  mae_comb = rbind(mae_more_tips, mae_intermed_tips, mae_less_tips)
-  mae_comb$sample_size = factor(mae_comb$sample_size, levels=c(200, 50, 20))
-  
-  p1 = ggplot(mae_comb, aes(x=as.numeric(as.character(n_sim)), y=mean_abs_error, color = sample_size)) + 
-    geom_line() + geom_point() + scale_color_manual(name = "Sample size", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Mean Absolute Error (MAE)") + coord_cartesian(ylim = c(0,20)) +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5))
-  
-  print(paste0("Mean absolute error (MAE) comparison for same model and different sample sizes plotted to: ",err_out_pref,out_path_mae))
-  ggsave(paste0(err_out_pref,out_path_mae), plot=p1, units="in", width=7, height=7, dpi=600)
-  
-  rmse_more_tips$sample_size = 200; rmse_intermed_tips$sample_size = 50; rmse_less_tips$sample_size = 20
-  rmse_comb = rbind(rmse_more_tips, rmse_intermed_tips, rmse_less_tips)
-  rmse_comb$sample_size = factor(rmse_comb$sample_size, levels=c(200, 50, 20))
-  
-  p2 = ggplot(rmse_comb, aes(x=as.numeric(as.character(n_sim)), y=rmse_val, color = sample_size)) + 
-    geom_line() + geom_point() + scale_color_manual(name = "Sample size", values = c("steelblue", "darkred", "darkolivegreen")) +
-    labs(x = "Simulation index", y = "Root Mean Square Error (RMSE)") + coord_cartesian(ylim = c(0,20)) +
-    theme_bw() + theme(plot.title = element_text(hjust=0.5))
-  
-  print(paste0("Root Mean Square Error (RMSE) comparison for same model and different sample sizes plotted to: ",err_out_pref,out_path_rmse))
-  ggsave(paste0(err_out_pref,out_path_rmse), plot=p2, units="in", width=7, height=7, dpi=600)
-  
-  return(list(p1, p2))
+	err_out_pref = "error_plots/"
+	system(paste0("mkdir -p ",err_out_pref,dirname(out_path_mae)))
+	system(paste0("mkdir -p ",err_out_pref,dirname(out_path_rmse)))
+
+	mae_more_tips$sample_size = 200; mae_intermed_tips$sample_size = 50; mae_less_tips$sample_size = 20
+	mae_comb = rbind(mae_more_tips, mae_intermed_tips, mae_less_tips)
+	mae_comb$sample_size = factor(mae_comb$sample_size, levels=c(200, 50, 20))
+
+	fct_lbls <- as_labeller(c(`200`="n=200",`50`="n=50",`20`="n=20"))
+
+	p1 = ggplot(mae_comb, aes(x=as.numeric(as.character(n_sim)), y=mean_abs_error, color = sample_size)) +
+		geom_line(size=0.2) + geom_point(size=0.6) + scale_color_manual(name = "Sample size", values = c("steelblue", "darkred", "darkolivegreen")) +
+		labs(x = "Simulation index", y = "MAE") + coord_cartesian(ylim = c(0,20)) +
+		theme_bw() + theme(plot.title = element_text(hjust=0.5), legend.position="none")
+
+	p1_f = p1 + facet_grid(. ~ sample_size, labeller=fct_lbls)
+	#p1_f = p1 + facet_grid(sample_size ~ ., labeller=fct_lbls)
+
+	print(paste0("Mean absolute error (MAE) comparison for same model and different sample sizes plotted to: ",err_out_pref,out_path_mae))
+	ggsave(paste0(err_out_pref,out_path_mae), plot=p1_f, units="in", width=6, height=3, dpi=600)
+
+	rmse_more_tips$sample_size = 200; rmse_intermed_tips$sample_size = 50; rmse_less_tips$sample_size = 20
+	rmse_comb = rbind(rmse_more_tips, rmse_intermed_tips, rmse_less_tips)
+	rmse_comb$sample_size = factor(rmse_comb$sample_size, levels=c(200, 50, 20))
+
+	p2 = ggplot(rmse_comb, aes(x=as.numeric(as.character(n_sim)), y=rmse_val, color = sample_size)) +
+		geom_line(size=0.2) + geom_point(size=0.6) + scale_color_manual(name = "Sample size", values = c("steelblue", "darkred", "darkolivegreen")) +
+		labs(x = "Simulation index", y = "RMSE") + coord_cartesian(ylim = c(0,20)) +
+		theme_bw() + theme(plot.title = element_text(hjust=0.5), legend.position="none")
+
+	p2_f = p2 + facet_grid(. ~ sample_size, labeller=fct_lbls)
+	#p2_f = p2 + facet_grid(sample_size ~ ., labeller=fct_lbls)
+
+	print(paste0("Root Mean Square Error (RMSE) comparison for same model and different sample sizes plotted to: ",err_out_pref,out_path_rmse))
+	ggsave(paste0(err_out_pref,out_path_rmse), plot=p2_f, units="in", width=7, height=2.5, dpi=600)
+
+	return(list(p1_f, p2_f))
 }
 
 # Since estimates for different sample sizes have different time axis, get ranges and approx values to get same time axis for all to fill table
